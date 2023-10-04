@@ -1,0 +1,2 @@
+# Matchbox evidence
+Trying to get the evidence value for the [Recommender System Tutorial](https://dotnet.github.io/infer/userguide/Recommender%20System.html) in the Infer.NET documentation, using model mixture as described in said documentation's [Computing model evidence for model selection](https://dotnet.github.io/infer/userguide/Computing%20model%20evidence%20for%20model%20selection.html) section
