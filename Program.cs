@@ -75,153 +75,313 @@ void GenerateData(
     ratingData.ObservedValue = generatedRatingData;
 }
 
-Console.WriteLine("I AM RUNNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
-            
-// Define counts
-int numUsers = 50;
-int numItems = 10;
-int numTraits = 2;
-Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
-int numLevels = 2;
-
-
-// Define ranges
-Range user = new Range(numUsers).Named("user");
-Range item = new Range(numItems).Named("item");
-Range trait = new Range(numTraits).Named("trait");
-Range observation = new Range(numObservations).Named("observation");
-Range level = new Range(numLevels).Named("level");
-
-IfBlock block = Variable.If(evidence);  
-// start of model  
-
-// Define latent variables
-var userTraits = Variable.Array(Variable.Array<double>(trait), user).Named("userTraits");
-var itemTraits = Variable.Array(Variable.Array<double>(trait), item).Named("itemTraits");
-var userBias = Variable.Array<double>(user).Named("userBias");
-var itemBias = Variable.Array<double>(item).Named("itemBias");
-var userThresholds = Variable.Array(Variable.Array<double>(level), user).Named("userThresholds");
-
-// Define priors
-var userTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), user).Named("userTraitsPrior");
-var itemTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), item).Named("itemTraitsPrior");
-var userBiasPrior = Variable.Array<Gaussian>(user).Named("userBiasPrior");
-var itemBiasPrior = Variable.Array<Gaussian>(item).Named("itemBiasPrior");
-var userThresholdsPrior = Variable.Array(Variable.Array<Gaussian>(level), user).Named("userThresholdsPrior");
-
-// Define latent variables statistically
-userTraits[user][trait] = Variable<double>.Random(userTraitsPrior[user][trait]);
-itemTraits[item][trait] = Variable<double>.Random(itemTraitsPrior[item][trait]);
-userBias[user] = Variable<double>.Random(userBiasPrior[user]);
-itemBias[item] = Variable<double>.Random(itemBiasPrior[item]);
-userThresholds[user][level] = Variable<double>.Random(userThresholdsPrior[user][level]);
-
-// Initialise priors
-Gaussian traitPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
-Gaussian biasPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
-
-userTraitsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numTraits, t => traitPrior));
-itemTraitsPrior.ObservedValue = Util.ArrayInit(numItems, i => Util.ArrayInit(numTraits, t => traitPrior));
-userBiasPrior.ObservedValue = Util.ArrayInit(numUsers, u => biasPrior);
-itemBiasPrior.ObservedValue = Util.ArrayInit(numItems, i => biasPrior);
-userThresholdsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numLevels, l => Gaussian.FromMeanAndVariance(l - numLevels / 2.0 + 0.5, 1.0)));
-
-// Break symmetry and remove ambiguity in the traits
-for (int i = 0; i < numTraits; i++)
+void EvidenceExample() 
 {
-    // Assume that numTraits < numItems
-    for (int j = 0; j < numTraits; j++)
+    Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
+    IfBlock block = Variable.If(evidence);  
+    // start of model  
+    Variable<double> x = Variable.GaussianFromMeanAndVariance(0, 1);  
+    Variable.ConstrainTrue(x > 0.5);  
+    // end of model  
+    block.CloseBlock();  
+    InferenceEngine engine = new InferenceEngine();  
+    double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
+    Console.WriteLine("The probability that a Gaussian(0,1) > 0.5 is {0}", Math.Exp(logEvidence));
+}
+
+void RecommenderTutorial()
+{
+    Console.WriteLine("Estoy corriendo...");
+    // This example requires EP
+    InferenceEngine engine = new InferenceEngine();
+    if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
     {
-        itemTraitsPrior.ObservedValue[i][j] = Gaussian.PointMass(0);
+        Console.WriteLine("This example only runs with Expectation Propagation");
+        return;
     }
 
-    itemTraitsPrior.ObservedValue[i][i] = Gaussian.PointMass(1);
+    // Define counts
+    int numUsers = 50;
+    int numItems = 10;
+    int numTraits = 2;
+    Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
+    int numLevels = 2;
+
+    // Define ranges
+    Range user = new Range(numUsers).Named("user");
+    Range item = new Range(numItems).Named("item");
+    Range trait = new Range(numTraits).Named("trait");
+    Range observation = new Range(numObservations).Named("observation");
+    Range level = new Range(numLevels).Named("level");
+
+    // Define latent variables
+    var userTraits = Variable.Array(Variable.Array<double>(trait), user).Named("userTraits");
+    var itemTraits = Variable.Array(Variable.Array<double>(trait), item).Named("itemTraits");
+    var userBias = Variable.Array<double>(user).Named("userBias");
+    var itemBias = Variable.Array<double>(item).Named("itemBias");
+    var userThresholds = Variable.Array(Variable.Array<double>(level), user).Named("userThresholds");
+
+    // Define priors
+    var userTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), user).Named("userTraitsPrior");
+    var itemTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), item).Named("itemTraitsPrior");
+    var userBiasPrior = Variable.Array<Gaussian>(user).Named("userBiasPrior");
+    var itemBiasPrior = Variable.Array<Gaussian>(item).Named("itemBiasPrior");
+    var userThresholdsPrior = Variable.Array(Variable.Array<Gaussian>(level), user).Named("userThresholdsPrior");
+
+    // Define latent variables statistically
+    userTraits[user][trait] = Variable<double>.Random(userTraitsPrior[user][trait]);
+    itemTraits[item][trait] = Variable<double>.Random(itemTraitsPrior[item][trait]);
+    userBias[user] = Variable<double>.Random(userBiasPrior[user]);
+    itemBias[item] = Variable<double>.Random(itemBiasPrior[item]);
+    userThresholds[user][level] = Variable<double>.Random(userThresholdsPrior[user][level]);
+
+    // Initialise priors
+    Gaussian traitPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
+    Gaussian biasPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
+
+    userTraitsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numTraits, t => traitPrior));
+    itemTraitsPrior.ObservedValue = Util.ArrayInit(numItems, i => Util.ArrayInit(numTraits, t => traitPrior));
+    userBiasPrior.ObservedValue = Util.ArrayInit(numUsers, u => biasPrior);
+    itemBiasPrior.ObservedValue = Util.ArrayInit(numItems, i => biasPrior);
+    userThresholdsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numLevels, l => Gaussian.FromMeanAndVariance(l - numLevels / 2.0 + 0.5, 1.0)));
+
+    // Break symmetry and remove ambiguity in the traits
+    for (int i = 0; i < numTraits; i++)
+    {
+        // Assume that numTraits < numItems
+        for (int j = 0; j < numTraits; j++)
+        {
+            itemTraitsPrior.ObservedValue[i][j] = Gaussian.PointMass(0);
+        }
+
+        itemTraitsPrior.ObservedValue[i][i] = Gaussian.PointMass(1);
+    }
+
+    // Declare training data variables
+    var userData = Variable.Array<int>(observation).Named("userData");
+    var itemData = Variable.Array<int>(observation).Named("itemData");
+    var ratingData = Variable.Array(Variable.Array<bool>(level), observation).Named("ratingData");
+
+    // Set model noises explicitly
+    Variable<double> affinityNoiseVariance = Variable.Observed(0.1).Named("affinityNoiseVariance");
+    Variable<double> thresholdsNoiseVariance = Variable.Observed(0.1).Named("thresholdsNoiseVariance");
+
+    // Model
+    using (Variable.ForEach(observation))
+    {
+        VariableArray<double> products = Variable.Array<double>(trait).Named("products");
+        products[trait] = userTraits[userData[observation]][trait] * itemTraits[itemData[observation]][trait];
+
+        Variable<double> bias = (userBias[userData[observation]] + itemBias[itemData[observation]]).Named("bias");
+        Variable<double> affinity = (bias + Variable.Sum(products).Named("productSum")).Named("affinity");
+        Variable<double> noisyAffinity = Variable.GaussianFromMeanAndVariance(affinity, affinityNoiseVariance).Named("noisyAffinity");
+
+        VariableArray<double> noisyThresholds = Variable.Array<double>(level).Named("noisyThresholds");
+        noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);
+        ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
+    }
+
+    // Observe training data
+    GenerateData(
+        numUsers,
+        numItems,
+        numTraits,
+        numObservations.ObservedValue,
+        numLevels,
+        userData,
+        itemData,
+        ratingData,
+        userTraitsPrior.ObservedValue,
+        itemTraitsPrior.ObservedValue,
+        userBiasPrior.ObservedValue,
+        itemBiasPrior.ObservedValue,
+        userThresholdsPrior.ObservedValue,
+        affinityNoiseVariance.ObservedValue,
+        thresholdsNoiseVariance.ObservedValue);
+
+    // Allow EP to process the product factor as if running VMP
+    // as in Stern, Herbrich, Graepel paper.
+    engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
+    engine.Compiler.ShowWarnings = true;
+
+    // Run inference
+    var userTraitsPosterior = engine.Infer<Gaussian[][]>(userTraits);
+    var itemTraitsPosterior = engine.Infer<Gaussian[][]>(itemTraits);
+    var userBiasPosterior = engine.Infer<Gaussian[]>(userBias);
+    var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
+    var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
+
+    // Feed in the inferred posteriors as the new priors
+    userTraitsPrior.ObservedValue = userTraitsPosterior;
+    itemTraitsPrior.ObservedValue = itemTraitsPosterior;
+    userBiasPrior.ObservedValue = userBiasPosterior;
+    itemBiasPrior.ObservedValue = itemBiasPosterior;
+    userThresholdsPrior.ObservedValue = userThresholdsPosterior;
+
+    // Make a prediction
+    numObservations.ObservedValue = 1;
+    userData.ObservedValue = new int[] { 5 };
+    itemData.ObservedValue = new int[] { 6 };
+    ratingData.ClearObservedValue();
+
+    Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
+    Console.WriteLine("Predicted rating:");
+    foreach (var rating in predictedRating)
+    {
+        Console.WriteLine(rating);
+    }
 }
 
-// Declare training data variables
-var userData = Variable.Array<int>(observation).Named("userData");
-var itemData = Variable.Array<int>(observation).Named("itemData");
-var ratingData = Variable.Array(Variable.Array<bool>(level), observation).Named("ratingData");
-
-// Set model noises explicitly
-Variable<double> affinityNoiseVariance = Variable.Observed(0.1).Named("affinityNoiseVariance");
-Variable<double> thresholdsNoiseVariance = Variable.Observed(0.1).Named("thresholdsNoiseVariance");
-
-// Model
-using (Variable.ForEach(observation))
+void Run()
 {
-    VariableArray<double> products = Variable.Array<double>(trait).Named("products");
-    products[trait] = userTraits[userData[observation]][trait] * itemTraits[itemData[observation]][trait];
+    Console.WriteLine("I AM RUNNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-    Variable<double> bias = (userBias[userData[observation]] + itemBias[itemData[observation]]).Named("bias");
-    Variable<double> affinity = (bias + Variable.Sum(products).Named("productSum")).Named("affinity");
-    Variable<double> noisyAffinity = Variable.GaussianFromMeanAndVariance(affinity, affinityNoiseVariance).Named("noisyAffinity");
+    // Define counts
+    int numUsers = 50;
+    int numItems = 10;
+    int numTraits = 2;
+    Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
+    int numLevels = 2;
 
-    VariableArray<double> noisyThresholds = Variable.Array<double>(level).Named("noisyThresholds");
-    noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);
-    ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
+    // Define ranges
+    Range user = new Range(numUsers).Named("user");
+    Range item = new Range(numItems).Named("item");
+    Range trait = new Range(numTraits).Named("trait");
+    Range observation = new Range(numObservations).Named("observation");
+    Range level = new Range(numLevels).Named("level");
+
+    // Define latent variables
+    var userTraits = Variable.Array(Variable.Array<double>(trait), user).Named("userTraits");
+    var itemTraits = Variable.Array(Variable.Array<double>(trait), item).Named("itemTraits");
+    var userBias = Variable.Array<double>(user).Named("userBias");
+    var itemBias = Variable.Array<double>(item).Named("itemBias");
+    var userThresholds = Variable.Array(Variable.Array<double>(level), user).Named("userThresholds");
+
+    // Define priors
+    var userTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), user).Named("userTraitsPrior");
+    var itemTraitsPrior = Variable.Array(Variable.Array<Gaussian>(trait), item).Named("itemTraitsPrior");
+    var userBiasPrior = Variable.Array<Gaussian>(user).Named("userBiasPrior");
+    var itemBiasPrior = Variable.Array<Gaussian>(item).Named("itemBiasPrior");
+    var userThresholdsPrior = Variable.Array(Variable.Array<Gaussian>(level), user).Named("userThresholdsPrior");
+
+    // Define latent variables statistically
+    userTraits[user][trait] = Variable<double>.Random(userTraitsPrior[user][trait]);
+    itemTraits[item][trait] = Variable<double>.Random(itemTraitsPrior[item][trait]);
+    userBias[user] = Variable<double>.Random(userBiasPrior[user]);
+    itemBias[item] = Variable<double>.Random(itemBiasPrior[item]);
+    userThresholds[user][level] = Variable<double>.Random(userThresholdsPrior[user][level]);
+
+    // Initialise priors
+    Gaussian traitPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
+    Gaussian biasPrior = Gaussian.FromMeanAndVariance(0.0, 1.0);
+
+    userTraitsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numTraits, t => traitPrior));
+    itemTraitsPrior.ObservedValue = Util.ArrayInit(numItems, i => Util.ArrayInit(numTraits, t => traitPrior));
+    userBiasPrior.ObservedValue = Util.ArrayInit(numUsers, u => biasPrior);
+    itemBiasPrior.ObservedValue = Util.ArrayInit(numItems, i => biasPrior);
+    userThresholdsPrior.ObservedValue = Util.ArrayInit(numUsers, u => Util.ArrayInit(numLevels, l => Gaussian.FromMeanAndVariance(l - numLevels / 2.0 + 0.5, 1.0)));
+
+    // Break symmetry and remove ambiguity in the traits
+    for (int i = 0; i < numTraits; i++)
+    {
+        // Assume that numTraits < numItems
+        for (int j = 0; j < numTraits; j++)
+        {
+            itemTraitsPrior.ObservedValue[i][j] = Gaussian.PointMass(0);
+        }
+
+        itemTraitsPrior.ObservedValue[i][i] = Gaussian.PointMass(1);
+    }
+
+    // Declare training data variables
+    var userData = Variable.Array<int>(observation).Named("userData");
+    var itemData = Variable.Array<int>(observation).Named("itemData");
+    var ratingData = Variable.Array(Variable.Array<bool>(level), observation).Named("ratingData");
+
+    // Set model noises explicitly
+    Variable<double> affinityNoiseVariance = Variable.Observed(0.1).Named("affinityNoiseVariance");
+    Variable<double> thresholdsNoiseVariance = Variable.Observed(0.1).Named("thresholdsNoiseVariance");
+
+    Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
+    IfBlock block = Variable.If(evidence); 
+    // Model
+    using (Variable.ForEach(observation))
+    {
+        VariableArray<double> products = Variable.Array<double>(trait).Named("products");
+        products[trait] = userTraits[userData[observation]][trait] * itemTraits[itemData[observation]][trait];
+
+        Variable<double> bias = (userBias[userData[observation]] + itemBias[itemData[observation]]).Named("bias");
+        Variable<double> affinity = (bias + Variable.Sum(products).Named("productSum")).Named("affinity");
+        Variable<double> noisyAffinity = Variable.GaussianFromMeanAndVariance(affinity, affinityNoiseVariance).Named("noisyAffinity");
+
+        VariableArray<double> noisyThresholds = Variable.Array<double>(level).Named("noisyThresholds");
+        noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);
+        ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
+    }
+    block.CloseBlock();  
+
+    // This example requires EP
+    InferenceEngine engine = new InferenceEngine();
+    if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
+    {
+        Console.WriteLine("This example only runs with Expectation Propagation");
+        return;
+    }
+
+    // Observe training data
+    GenerateData(
+        numUsers,
+        numItems,
+        numTraits,
+        numObservations.ObservedValue,
+        numLevels,
+        userData,
+        itemData,
+        ratingData,
+        userTraitsPrior.ObservedValue,
+        itemTraitsPrior.ObservedValue,
+        userBiasPrior.ObservedValue,
+        itemBiasPrior.ObservedValue,
+        userThresholdsPrior.ObservedValue,
+        affinityNoiseVariance.ObservedValue,
+        thresholdsNoiseVariance.ObservedValue);
+
+    // Allow EP to process the product factor as if running VMP
+    // as in Stern, Herbrich, Graepel paper.
+    engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
+    engine.Compiler.ShowWarnings = true;
+
+    // Run inference
+    var userTraitsPosterior = engine.Infer<Gaussian[][]>(userTraits);
+    var itemTraitsPosterior = engine.Infer<Gaussian[][]>(itemTraits);
+    var userBiasPosterior = engine.Infer<Gaussian[]>(userBias);
+    var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
+    var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
+
+    // Feed in the inferred posteriors as the new priors
+    userTraitsPrior.ObservedValue = userTraitsPosterior;
+    itemTraitsPrior.ObservedValue = itemTraitsPosterior;
+    userBiasPrior.ObservedValue = userBiasPosterior;
+    itemBiasPrior.ObservedValue = itemBiasPosterior;
+    userThresholdsPrior.ObservedValue = userThresholdsPosterior;
+
+    double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
+    Console.WriteLine("The evidence for the model after training is {0}", System.Math.Exp(logEvidence));
+
+    // Make a prediction
+    numObservations.ObservedValue = 1;
+    userData.ObservedValue = new int[] { 5 };
+    itemData.ObservedValue = new int[] { 6 };
+    ratingData.ClearObservedValue();
+
+    Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
+    Console.WriteLine("Predicted rating:");
+    foreach (var rating in predictedRating)
+    {
+        Console.WriteLine(rating);
+    }
 }
 
-// end of model  
-block.CloseBlock();
-// This example requires EP
-InferenceEngine engine = new InferenceEngine();
-if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
-{
-    Console.WriteLine("This example only runs with Expectation Propagation");
-    return;
-}
-
-// Observe training data
-GenerateData(
-    numUsers,
-    numItems,
-    numTraits,
-    numObservations.ObservedValue,
-    numLevels,
-    userData,
-    itemData,
-    ratingData,
-    userTraitsPrior.ObservedValue,
-    itemTraitsPrior.ObservedValue,
-    userBiasPrior.ObservedValue,
-    itemBiasPrior.ObservedValue,
-    userThresholdsPrior.ObservedValue,
-    affinityNoiseVariance.ObservedValue,
-    thresholdsNoiseVariance.ObservedValue);
-
-// Allow EP to process the product factor as if running VMP
-// as in Stern, Herbrich, Graepel paper.
-engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
-engine.Compiler.ShowWarnings = true;
-
-// Run inference
-var userTraitsPosterior = engine.Infer<Gaussian[][]>(userTraits);
-var itemTraitsPosterior = engine.Infer<Gaussian[][]>(itemTraits);
-var userBiasPosterior = engine.Infer<Gaussian[]>(userBias);
-var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
-var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
-
-// Feed in the inferred posteriors as the new priors
-userTraitsPrior.ObservedValue = userTraitsPosterior;
-itemTraitsPrior.ObservedValue = itemTraitsPosterior;
-userBiasPrior.ObservedValue = userBiasPosterior;
-itemBiasPrior.ObservedValue = itemBiasPosterior;
-userThresholdsPrior.ObservedValue = userThresholdsPosterior;
-
-// Make a prediction
-numObservations.ObservedValue = 1;
-userData.ObservedValue = new int[] { 5 };
-itemData.ObservedValue = new int[] { 6 };
-ratingData.ClearObservedValue();
-
-double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
-Console.WriteLine("The evidence for the trained Matchbox model is {0}", Math.Exp(logEvidence));
-
-Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
-Console.WriteLine("Predicted rating:");
-foreach (var rating in predictedRating)
-{
-    Console.WriteLine(rating);
-}
+RecommenderTutorial();
+//EvidenceExample();
+//Run();
