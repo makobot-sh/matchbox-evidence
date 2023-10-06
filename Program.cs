@@ -395,8 +395,6 @@ void GetEvidenceFromTutorial()
     }
 }
 
-void RecommenderTutorialFromCode() {
-    RecommenderTutorial();
-}
+//RecommenderTutorial();
 //EvidenceExample();
-//GetEvidenceFromTutorial();
+GetEvidenceFromTutorial();
