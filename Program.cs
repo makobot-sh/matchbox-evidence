@@ -97,7 +97,6 @@ void EvidenceExample()
 
 void RecommenderTutorial()
 {
-    Console.WriteLine("Estoy corriendo...");
     // This example requires EP
     InferenceEngine engine = new InferenceEngine();
     if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
