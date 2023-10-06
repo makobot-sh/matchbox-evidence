@@ -380,6 +380,6 @@ void GetEvidenceFromTutorial()
     }
 }
 
-GetEvidenceFromTutorial();
+RecommenderTutorial();
 //EvidenceExample();
-//GetEvidenceFromExample();
+//GetEvidenceFromTutorial();
