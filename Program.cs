@@ -217,12 +217,6 @@ void RecommenderTutorial()
     var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
     var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
 
-    Console.WriteLine("| learned parameters |");
-    Console.WriteLine("| -- |");
-    for (int i = 0; i < 5; i++)
-    {   
-        Console.WriteLine("| {0}    {1} |", itemTraitsPosterior[i][0].GetMean().ToString("F"), itemTraitsPosterior[i][1].GetMean().ToString("F"));
-    }
     // Feed in the inferred posteriors as the new priors
     userTraitsPrior.ObservedValue = userTraitsPosterior;
     itemTraitsPrior.ObservedValue = itemTraitsPosterior;
@@ -230,12 +224,20 @@ void RecommenderTutorial()
     itemBiasPrior.ObservedValue = itemBiasPosterior;
     userThresholdsPrior.ObservedValue = userThresholdsPosterior;
 
+    /*
     // Make a prediction
     numObservations.ObservedValue = 1;
     userData.ObservedValue = new int[] { 5 };
     itemData.ObservedValue = new int[] { 6 };
     ratingData.ClearObservedValue();
-
+    */
+    
+    Console.WriteLine("| learned parameters |");
+    Console.WriteLine("| -- |");
+    for (int i = 0; i < 5; i++)
+    {   
+        Console.WriteLine("| {0}    {1} |", itemTraitsPosterior[i][0].GetMean().ToString("F"), itemTraitsPosterior[i][1].GetMean().ToString("F"));
+    }
 
     Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
     Console.WriteLine("Predicted rating:");
@@ -393,6 +395,8 @@ void GetEvidenceFromTutorial()
     }
 }
 
-RecommenderTutorial();
+void RecommenderTutorialFromCode() {
+    RecommenderTutorial();
+}
 //EvidenceExample();
 //GetEvidenceFromTutorial();
