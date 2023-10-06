@@ -70,10 +70,11 @@ void GenerateData(
         generatedRatingData[observation] = Util.ArrayInit(numLevels, l => noisyAffinity > noisyThresholds[l]);
     }
 
-    Console.WriteLine("True parameters:");
+    Console.WriteLine("| true parameters |");
+    Console.WriteLine("| -- |");
     for (int i = 0; i < 5; i++)
     {   
-        Console.WriteLine("[{0}] {1}, {2}", i, itemTraits[i][0], itemTraits[i][1]);
+        Console.WriteLine("| {0}    {1} |", itemTraits[i][0].ToString("F"), itemTraits[i][1].ToString("F"));
     }
 
     userData.ObservedValue = generatedUserData;
@@ -216,10 +217,11 @@ void RecommenderTutorial()
     var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
     var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
 
-    Console.WriteLine("Learned parameters:");
+    Console.WriteLine("| learned parameters |");
+    Console.WriteLine("| -- |");
     for (int i = 0; i < 5; i++)
     {   
-        Console.WriteLine("[0] {1}, {2}", i, itemTraitsPosterior[i][0].Point, itemTraitsPosterior[i][1].Point);
+        Console.WriteLine("| {0}    {1} |", itemTraitsPosterior[i][0].GetMean().ToString("F"), itemTraitsPosterior[i][1].GetMean().ToString("F"));
     }
     // Feed in the inferred posteriors as the new priors
     userTraitsPrior.ObservedValue = userTraitsPosterior;
