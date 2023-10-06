@@ -381,18 +381,21 @@ void GetEvidenceFromTutorial()
     double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
     Console.WriteLine("The evidence for the model after training is {0}", System.Math.Exp(logEvidence));
 
+    /*
     // Make a prediction
     numObservations.ObservedValue = 1;
     userData.ObservedValue = new int[] { 5 };
     itemData.ObservedValue = new int[] { 6 };
     ratingData.ClearObservedValue();
 
+    
     Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
     Console.WriteLine("Predicted rating:");
     foreach (var rating in predictedRating)
     {
         Console.WriteLine(rating);
     }
+    */
 }
 
 //RecommenderTutorial();

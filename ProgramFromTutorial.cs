@@ -65,6 +65,9 @@ var ratingData = Variable.Array(Variable.Array<bool>(level), observation).Named(
 //We set the noise level to 0.1 because of the small amount of data we work with, but in practise probably a choice of 1.0 might yield better results.
 double affinityNoiseVariance = 0.1;
 double thresholdsNoiseVariance = 0.1;
+
+Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
+IfBlock block = Variable.If(evidence); 
 // Model  
 using (Variable.ForEach(observation)) {  
     VariableArray<double> products = Variable.Array<double>(trait);  
@@ -78,6 +81,7 @@ using (Variable.ForEach(observation)) {
     noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);  
     ratingData[observation][level] = noisyAffinity > noisyThresholds[level];  
 }  
+block.CloseBlock(); 
 /// *
 // Break symmetry and remove ambiguity in the traits  
 // TODO: no entendi esto
@@ -87,6 +91,7 @@ for (int i = 0; i < numTraits; i++) {    // Assume that numTraits < numItems
     }  
     itemTraitsPrior.ObservedValue[i][i] = Gaussian.PointMass(1);  
 }
+
 
 // ***************************************************************************** //
 // *********************** Generate data from the model ************************ //
@@ -129,7 +134,7 @@ for (int observation_ = 0; observation_ < numGeneratedObservations; observation_
     generatedRatingData[observation_] = Util.ArrayInit(numLevels, l => noisyAffinity_ > noisyThresholds_[l]);  
 }
 
-for (int i = 0; i < 5; i++) { Console.WriteLine("predicted ["+i+"]: {0}", string.Join(", ", itemTraits_[i])); }
+//for (int i = 0; i < 5; i++) { Console.WriteLine("predicted ["+i+"]: {0}", string.Join(", ", itemTraits_[i])); }
 
 /// *
 // ***************************************************************************** //
@@ -141,14 +146,15 @@ for (int i = 0; i < 5; i++) { Console.WriteLine("predicted ["+i+"]: {0}", string
 InferenceEngine engine = new InferenceEngine();  
 engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
 
+
 // Make a prediction  
 numGeneratedObservations = 1;  //2
 userData.ObservedValue = generatedUserData;
 itemData.ObservedValue = generatedItemData;
-
+/*
 Bernoulli[][] predictedRating = engine.Infer<Bernoulli[][]>(ratingData);  
 Console.WriteLine("Predicted rating:");  
-
+*/
 //foreach (var rating in predictedRating) Console.WriteLine(rating[0]+ "," +rating[1]);
 
 //ratingData.ObservedValue[0] = new bool[] {true, true}; 
@@ -172,7 +178,11 @@ userBiasPrior.ObservedValue = userBiasPosterior;
 itemBiasPrior.ObservedValue = itemBiasPosterior;  
 userThresholdsPrior.ObservedValue = userThresholdsPosterior;
 
+double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
+Console.WriteLine("The evidence for the model after training is {0}", System.Math.Exp(logEvidence);
+/*
 predictedRating = engine.Infer<Bernoulli[][]>(ratingData);  
 Console.WriteLine("Predicted rating:");  
 for (int i = 0; i < 5; i++) { Console.WriteLine("predicted ["+i+"]: {0}", string.Join(", ", itemTraitsPosterior[i])); }
 //foreach (var rating in predictedRating) Console.WriteLine(rating[0]+ "," +rating[1]);
+*/
