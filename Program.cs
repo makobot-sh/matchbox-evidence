@@ -70,6 +70,12 @@ void GenerateData(
         generatedRatingData[observation] = Util.ArrayInit(numLevels, l => noisyAffinity > noisyThresholds[l]);
     }
 
+    Console.WriteLine("True parameters:");
+    for (int i = 0; i < 5; i++)
+    {   
+        Console.WriteLine("[{0}] {1}, {2}", i, itemTraits[i][0], itemTraits[i][1]);
+    }
+
     userData.ObservedValue = generatedUserData;
     itemData.ObservedValue = generatedItemData;
     ratingData.ObservedValue = generatedRatingData;
@@ -101,10 +107,10 @@ void RecommenderTutorial()
     }
 
     // Define counts
-    int numUsers = 50;
-    int numItems = 10;
+    int numUsers = 200;
+    int numItems = 200;
     int numTraits = 2;
-    Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
+    Variable<int> numObservations = Variable.Observed(20000).Named("numObservations");
     int numLevels = 2;
 
     // Define ranges
@@ -211,6 +217,11 @@ void RecommenderTutorial()
     var itemBiasPosterior = engine.Infer<Gaussian[]>(itemBias);
     var userThresholdsPosterior = engine.Infer<Gaussian[][]>(userThresholds);
 
+    Console.WriteLine("Learned parameters:");
+    for (int i = 0; i < 5; i++)
+    {   
+        Console.WriteLine("[0] {1}, {2}", i, itemTraitsPosterior[i][0].Point, itemTraitsPosterior[i][1].Point);
+    }
     // Feed in the inferred posteriors as the new priors
     userTraitsPrior.ObservedValue = userTraitsPosterior;
     itemTraitsPrior.ObservedValue = itemTraitsPosterior;
@@ -223,6 +234,7 @@ void RecommenderTutorial()
     userData.ObservedValue = new int[] { 5 };
     itemData.ObservedValue = new int[] { 6 };
     ratingData.ClearObservedValue();
+
 
     Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
     Console.WriteLine("Predicted rating:");
