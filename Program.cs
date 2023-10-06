@@ -232,10 +232,8 @@ void RecommenderTutorial()
     }
 }
 
-void Run()
+void GetEvidenceFromTutorial()
 {
-    Console.WriteLine("I AM RUNNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
     // Define counts
     int numUsers = 50;
     int numItems = 10;
@@ -382,6 +380,6 @@ void Run()
     }
 }
 
-RecommenderTutorial();
+GetEvidenceFromTutorial();
 //EvidenceExample();
-//Run();
+//GetEvidenceFromExample();
