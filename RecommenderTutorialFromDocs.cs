@@ -8,10 +8,10 @@ using Range = Microsoft.ML.Probabilistic.Models.Range;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public class RecommenderTutorialFromDocs {
-    static int numUsers = 50;
-    static int numItems = 10;
+    static int numUsers = 200;
+    static int numItems = 200;
     static int numTraits = 2;
-    static int numObs = 100;
+    static int numObs = 20000;
     static int numLevels = 2;
 
     public static void Evidence() {
