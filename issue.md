@@ -14,15 +14,7 @@ static int numTraits = 2;
 static int numObs = 100;
 static int numLevels = 2;
 ```
-but when I try the suggested parameters at the end of the tutorial, that is to say
-```c#
-static int numUsers = 200;
-static int numItems = 200;
-static int numTraits = 2;
-static int numObs = 20000;
-static int numLevels = 2;
-```
-The estimated item traits don't match the truth or the tutorial's results at all. For reference, with the first parameters the results I get are:
+Give the following estimations:
 | true parameters | learned parameters |
 | --------------- | ------------------ |
 | 1,00    0,00 | 1,00    0,00 |
@@ -31,7 +23,18 @@ The estimated item traits don't match the truth or the tutorial's results at all
 | -0,06    -0,03 | -0,42    -0,04 |
 | 0,80    -0,92 | 0,04    0,86 |
 
-while with the second set I get:
+**But the evidence is still 0.**
+
+However, when I try the suggested parameters at the end of the tutorial, which are supposed to give even better results:
+```c#
+static int numUsers = 200;
+static int numItems = 200;
+static int numTraits = 2;
+static int numObs = 20000;
+static int numLevels = 2;
+```
+The estimated item traits don't match the truth or the tutorial's results at all. Instead, I'm getting the following estimations:
+
 | true parameters | learned parameters |
 | --------------- | ------------------ |
 | 1,00    0,00 | 1,00    0,00 |
@@ -39,5 +42,7 @@ while with the second set I get:
 | 0,44    -1,07 | 3,01    2,80 |
 | -0,38    -0,83 | 3,01    2,80 |
 | 0,11    0,68 | 3,03    2,82 |
+
+**And evidence 0 as well**, which makes more sense in this case.
 
 Any ideas why this could be?
