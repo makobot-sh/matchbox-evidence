@@ -36,7 +36,8 @@ public class RecommenderTutorialFromRepository{
         Gaussian[] itemBiasPrior,
         Gaussian[][] userThresholdsPrior,
         double affinityNoiseVariance,
-        double thresholdsNoiseVariance)
+        double thresholdsNoiseVariance,
+        Boolean printGenerated)
     {
         int[] generatedUserData = new int[numObservations];
         int[] generatedItemData = new int[numObservations];
@@ -77,11 +78,13 @@ public class RecommenderTutorialFromRepository{
             generatedRatingData[observation] = Util.ArrayInit(numLevels, l => noisyAffinity > noisyThresholds[l]);
         }
 
-        Console.WriteLine("| true parameters |");
-        Console.WriteLine("| --------------- |");
-        for (int i = 0; i < 5; i++)
-        {   
-            Console.WriteLine("| {0}    {1} |", itemTraits[i][0].ToString("F"), itemTraits[i][1].ToString("F"));
+        if (printGenerated) {
+            Console.WriteLine("| true parameters |");
+            Console.WriteLine("| --------------- |");
+            for (int i = 0; i < 5; i++)
+            {   
+                Console.WriteLine("| {0}    {1} |", itemTraits[i][0].ToString("F"), itemTraits[i][1].ToString("F"));
+            }
         }
 
         userData.ObservedValue = generatedUserData;
@@ -210,7 +213,8 @@ public class RecommenderTutorialFromRepository{
             itemBiasPrior.ObservedValue,
             userThresholdsPrior.ObservedValue,
             affinityNoiseVariance.ObservedValue,
-            thresholdsNoiseVariance.ObservedValue);
+            thresholdsNoiseVariance.ObservedValue,
+            true);
 
         // Allow EP to process the product factor as if running VMP
         // as in Stern, Herbrich, Graepel paper.
@@ -366,7 +370,8 @@ public class RecommenderTutorialFromRepository{
             itemBiasPrior.ObservedValue,
             userThresholdsPrior.ObservedValue,
             affinityNoiseVariance.ObservedValue,
-            thresholdsNoiseVariance.ObservedValue);
+            thresholdsNoiseVariance.ObservedValue,
+            false);
 
         // Allow EP to process the product factor as if running VMP
         // as in Stern, Herbrich, Graepel paper.
@@ -398,7 +403,8 @@ public class RecommenderTutorialFromRepository{
 
         double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
         double modelEvidence = System.Math.Exp(logEvidence);
-        Console.WriteLine("\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
+        Console.WriteLine("\nEvidence:");
+        Console.WriteLine("\n|   |   |\n| -------- | - |\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
 
         /*
         // Make a prediction

@@ -195,7 +195,8 @@ public class RecommenderTutorialFromDocs {
 
         double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;
         double modelEvidence = System.Math.Exp(logEvidence); 
-        Console.WriteLine("\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
+        Console.WriteLine("\nEvidence");
+        Console.WriteLine("\n|   |   |\n| -------- | - |\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
         
 
         /* // Print parameters
