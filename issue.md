@@ -1,7 +1,7 @@
 ### Matchbox tutorial evidence
 
 Hi everyone,
-I've been trying to get the evidence for the model from the [Recommender System Tutorial](https://dotnet.github.io/infer/userguide/Recommender%20System.html) in the docs but I haven't been able to figure out how. I tried using mixture modelling as described in [Computing model evidence for model selection](https://dotnet.github.io/infer/userguide/Computing%20model%20evidence%20for%20model%20selection.html) but the resulting evidence has been very small (near 0). I'm not sure I'm doing things right so if anyone could give me feedback on the code I'd appreciate it enormously. [Here is what I did](https://github.com/makobot-sh/matchbox-evidence/blob/main/RecommenderTutorialFromRepository.cs#L258) (look at the `RecommenderTutorialFromRepository.Evidence` function).
+I've been trying to get the evidence for the model from the [Recommender System Tutorial](https://dotnet.github.io/infer/userguide/Recommender%20System.html) in the docs but I haven't been able to figure out how. I tried using mixture modelling as described in [Computing model evidence for model selection](https://dotnet.github.io/infer/userguide/Computing%20model%20evidence%20for%20model%20selection.html) but **the resulting evidence has been very small (near 0)**. I'm not sure I'm doing things right so if anyone could give me feedback on the code I'd appreciate it enormously. [Here is what I did](https://github.com/makobot-sh/matchbox-evidence/blob/main/RecommenderTutorialFromRepository.cs#L258) (look at the `RecommenderTutorialFromRepository.Evidence` function).
 
 
 ---
@@ -23,7 +23,7 @@ Give the following estimations:
 | -0,06    -0,03 | -0,42    -0,04 |
 | 0,80    -0,92 | 0,04    0,86 |
 
-**But the evidence is still 0.**
+<ins>**But the evidence is still 0.**</ins>
 
 However, when I try the suggested parameters at the end of the tutorial, which are supposed to give even better results:
 ```c#
