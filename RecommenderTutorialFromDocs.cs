@@ -193,8 +193,9 @@ public class RecommenderTutorialFromDocs {
         itemBiasPrior.ObservedValue = itemBiasPosterior;  
         userThresholdsPrior.ObservedValue = userThresholdsPosterior;
 
-        double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
-        Console.WriteLine("The evidence for the model after training is {0}", System.Math.Exp(logEvidence));
+        double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;
+        double modelEvidence = System.Math.Exp(logEvidence); 
+        Console.WriteLine("\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
         
 
         /* // Print parameters
