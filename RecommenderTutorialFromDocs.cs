@@ -5,16 +5,22 @@ using Microsoft.ML.Probabilistic.Math;
 using Microsoft.ML.Probabilistic.Utilities;
 
 using Range = Microsoft.ML.Probabilistic.Models.Range;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public class RecommenderTutorialFromDocs {
+    static int numUsers = 50;
+    static int numItems = 10;
+    static int numTraits = 2;
+    static int numObs = 100;
+    static int numLevels = 2;
 
     public static void Evidence() {
         // Define counts  
-        int numUsers = 200;  
-        int numItems = 200;  
-        int numTraits = 2;  
-        Variable<int> numObservations = Variable.Observed(20000);  
-        int numLevels = 2;  
+        int numUsers = RecommenderTutorialFromDocs.numUsers;  
+        int numItems = RecommenderTutorialFromDocs.numItems;  
+        int numTraits = RecommenderTutorialFromDocs.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromDocs.numObs);  
+        int numLevels = RecommenderTutorialFromDocs.numLevels;  
 
         // Define ranges  
         Range user = new Range(numUsers);  
@@ -208,11 +214,11 @@ public class RecommenderTutorialFromDocs {
     }
     public static void ItemPosteriors() {
         // Define counts  
-        int numUsers = 200;  
-        int numItems = 200;  
-        int numTraits = 2;  
-        Variable<int> numObservations = Variable.Observed(20000);  
-        int numLevels = 2;  
+        int numUsers = RecommenderTutorialFromDocs.numUsers;  
+        int numItems = RecommenderTutorialFromDocs.numItems;  
+        int numTraits = RecommenderTutorialFromDocs.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromDocs.numObs);  
+        int numLevels = RecommenderTutorialFromDocs.numLevels;  
 
         // Define ranges  
         Range user = new Range(numUsers);  
@@ -269,8 +275,6 @@ public class RecommenderTutorialFromDocs {
         double affinityNoiseVariance = 0.1;
         double thresholdsNoiseVariance = 0.1;
 
-        Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
-        IfBlock block = Variable.If(evidence); 
         // Model  
         using (Variable.ForEach(observation)) {  
             VariableArray<double> products = Variable.Array<double>(trait);  
@@ -284,7 +288,6 @@ public class RecommenderTutorialFromDocs {
             noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);  
             ratingData[observation][level] = noisyAffinity > noisyThresholds[level];  
         }  
-        block.CloseBlock(); 
         /// *
         // Break symmetry and remove ambiguity in the traits  
         // TODO: no entendi esto
@@ -382,10 +385,6 @@ public class RecommenderTutorialFromDocs {
         userBiasPrior.ObservedValue = userBiasPosterior;  
         itemBiasPrior.ObservedValue = itemBiasPosterior;  
         userThresholdsPrior.ObservedValue = userThresholdsPosterior;
-
-        double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
-        Console.WriteLine("The evidence for the model after training is {0}", System.Math.Exp(logEvidence));
-        
 
         Console.WriteLine("| learned parameters |");
         Console.WriteLine("| ------------------ |");

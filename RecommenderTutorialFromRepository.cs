@@ -14,6 +14,11 @@ using Microsoft.ML.Probabilistic.Factors;
 using Range = Microsoft.ML.Probabilistic.Models.Range;
 
 public class RecommenderTutorialFromRepository{
+    static int numUsers = 50;
+    static int numItems = 10;
+    static int numTraits = 2;
+    static int numObs = 100;
+    static int numLevels = 2;
     // Generates data from the model
     public static void GenerateData(
         int numUsers,
@@ -108,11 +113,11 @@ public class RecommenderTutorialFromRepository{
         }
 
         // Define counts
-        int numUsers = 200;
-        int numItems = 200;
-        int numTraits = 2;
-        Variable<int> numObservations = Variable.Observed(20000).Named("numObservations");
-        int numLevels = 2;
+        int numUsers = RecommenderTutorialFromRepository.numUsers;  
+        int numItems = RecommenderTutorialFromRepository.numItems;  
+        int numTraits = RecommenderTutorialFromRepository.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs);  
+        int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
         Range user = new Range(numUsers).Named("user");
@@ -253,11 +258,11 @@ public class RecommenderTutorialFromRepository{
     public static void Evidence()
     {
         // Define counts
-        int numUsers = 200;
-        int numItems = 200;
-        int numTraits = 2;
-        Variable<int> numObservations = Variable.Observed(20000).Named("numObservations");
-        int numLevels = 2;
+        int numUsers = RecommenderTutorialFromRepository.numUsers;  
+        int numItems = RecommenderTutorialFromRepository.numItems;  
+        int numTraits = RecommenderTutorialFromRepository.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs);  
+        int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
         Range user = new Range(numUsers).Named("user");
