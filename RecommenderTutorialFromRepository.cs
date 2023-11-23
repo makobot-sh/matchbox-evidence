@@ -13,9 +13,15 @@ using Microsoft.ML.Probabilistic.Math;
 using Microsoft.ML.Probabilistic.Factors;
 using Range = Microsoft.ML.Probabilistic.Models.Range;
 
-public class OriginalRepository{
+public class RecommenderTutorialFromRepository{
+    static int numUsers = 200;
+    static int numItems = 200;
+    static int numTraits = 2;
+    static int numObs = 20000;
+    static int numLevels = 2;
+
     // Generates data from the model
-    void GenerateData(
+    public static void GenerateData(
         int numUsers,
         int numItems,
         int numTraits,
@@ -30,7 +36,8 @@ public class OriginalRepository{
         Gaussian[] itemBiasPrior,
         Gaussian[][] userThresholdsPrior,
         double affinityNoiseVariance,
-        double thresholdsNoiseVariance)
+        double thresholdsNoiseVariance,
+        Boolean printGenerated)
     {
         int[] generatedUserData = new int[numObservations];
         int[] generatedItemData = new int[numObservations];
@@ -71,6 +78,15 @@ public class OriginalRepository{
             generatedRatingData[observation] = Util.ArrayInit(numLevels, l => noisyAffinity > noisyThresholds[l]);
         }
 
+        if (printGenerated) {
+            Console.WriteLine("| true parameters |");
+            Console.WriteLine("| --------------- |");
+            for (int i = 0; i < 5; i++)
+            {   
+                Console.WriteLine("| {0}    {1} |", itemTraits[i][0].ToString("F"), itemTraits[i][1].ToString("F"));
+            }
+        }
+
         userData.ObservedValue = generatedUserData;
         itemData.ObservedValue = generatedItemData;
         ratingData.ObservedValue = generatedRatingData;
@@ -90,22 +106,22 @@ public class OriginalRepository{
         Console.WriteLine("The probability that a Gaussian(0,1) > 0.5 is {0}", Math.Exp(logEvidence));
     }
 
-    public void ItemPosteriors()
+    public static void ItemPosteriors()
     {
         // This example requires EP
         InferenceEngine engine = new InferenceEngine();
-        if (!(engine.Algorithm is Algorithms.ExpectationPropagation))
+        if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
         {
             Console.WriteLine("This example only runs with Expectation Propagation");
             return;
         }
 
         // Define counts
-        int numUsers = 50;
-        int numItems = 10;
-        int numTraits = 2;
-        Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
-        int numLevels = 2;
+        int numUsers = RecommenderTutorialFromRepository.numUsers;  
+        int numItems = RecommenderTutorialFromRepository.numItems;  
+        int numTraits = RecommenderTutorialFromRepository.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs).Named("numObservations");  
+        int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
         Range user = new Range(numUsers).Named("user");
@@ -197,7 +213,8 @@ public class OriginalRepository{
             itemBiasPrior.ObservedValue,
             userThresholdsPrior.ObservedValue,
             affinityNoiseVariance.ObservedValue,
-            thresholdsNoiseVariance.ObservedValue);
+            thresholdsNoiseVariance.ObservedValue,
+            true);
 
         // Allow EP to process the product factor as if running VMP
         // as in Stern, Herbrich, Graepel paper.
@@ -218,36 +235,47 @@ public class OriginalRepository{
         itemBiasPrior.ObservedValue = itemBiasPosterior;
         userThresholdsPrior.ObservedValue = userThresholdsPosterior;
 
+        /*
         // Make a prediction
         numObservations.ObservedValue = 1;
         userData.ObservedValue = new int[] { 5 };
         itemData.ObservedValue = new int[] { 6 };
         ratingData.ClearObservedValue();
+        */
+        
+        Console.WriteLine("| learned parameters |");
+        Console.WriteLine("| ------------------ |");
+        for (int i = 0; i < 5; i++)
+        {   
+            Console.WriteLine("| {0}    {1} |", itemTraitsPosterior[i][0].GetMean().ToString("F"), itemTraitsPosterior[i][1].GetMean().ToString("F"));
+        }
 
+        /*
         Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
         Console.WriteLine("Predicted rating:");
         foreach (var rating in predictedRating)
         {
             Console.WriteLine(rating);
         }
+        */
     }
 
-    public void Evidence()
+    public static void Evidence()
     {
         // This example requires EP
         InferenceEngine engine = new InferenceEngine();
-        if (!(engine.Algorithm is Algorithms.ExpectationPropagation))
+        if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
         {
             Console.WriteLine("This example only runs with Expectation Propagation");
             return;
         }
 
         // Define counts
-        int numUsers = 50;
-        int numItems = 10;
-        int numTraits = 2;
-        Variable<int> numObservations = Variable.Observed(100).Named("numObservations");
-        int numLevels = 2;
+        int numUsers = RecommenderTutorialFromRepository.numUsers;  
+        int numItems = RecommenderTutorialFromRepository.numItems;  
+        int numTraits = RecommenderTutorialFromRepository.numTraits;  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs).Named("numObservations");  
+        int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
         Range user = new Range(numUsers).Named("user");
@@ -308,6 +336,8 @@ public class OriginalRepository{
         Variable<double> affinityNoiseVariance = Variable.Observed(0.1).Named("affinityNoiseVariance");
         Variable<double> thresholdsNoiseVariance = Variable.Observed(0.1).Named("thresholdsNoiseVariance");
 
+        Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
+        IfBlock block = Variable.If(evidence); 
         // Model
         using (Variable.ForEach(observation))
         {
@@ -322,6 +352,7 @@ public class OriginalRepository{
             noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);
             ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
         }
+        block.CloseBlock();  
 
         // Observe training data
         GenerateData(
@@ -339,7 +370,8 @@ public class OriginalRepository{
             itemBiasPrior.ObservedValue,
             userThresholdsPrior.ObservedValue,
             affinityNoiseVariance.ObservedValue,
-            thresholdsNoiseVariance.ObservedValue);
+            thresholdsNoiseVariance.ObservedValue,
+            false);
 
         // Allow EP to process the product factor as if running VMP
         // as in Stern, Herbrich, Graepel paper.
@@ -360,17 +392,34 @@ public class OriginalRepository{
         itemBiasPrior.ObservedValue = itemBiasPosterior;
         userThresholdsPrior.ObservedValue = userThresholdsPosterior;
 
+        /* //Print posteriors
+        Console.WriteLine("| learned parameters |");
+        Console.WriteLine("| ------------------ |");
+        for (int i = 0; i < 5; i++)
+        {   
+            Console.WriteLine("| {0}    {1} |", itemTraitsPosterior[i][0].GetMean().ToString("F"), itemTraitsPosterior[i][1].GetMean().ToString("F"));
+        }
+        */
+
+        double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
+        double modelEvidence = System.Math.Exp(logEvidence);
+        Console.WriteLine("\nEvidence:");
+        Console.WriteLine("\n|   |   |\n| -------- | - |\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
+
+        /*
         // Make a prediction
+        Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
         numObservations.ObservedValue = 1;
         userData.ObservedValue = new int[] { 5 };
         itemData.ObservedValue = new int[] { 6 };
         ratingData.ClearObservedValue();
 
-        Bernoulli[] predictedRating = engine.Infer<Bernoulli[][]>(ratingData)[0];
+        
         Console.WriteLine("Predicted rating:");
         foreach (var rating in predictedRating)
         {
             Console.WriteLine(rating);
         }
+        */
     }
 }
