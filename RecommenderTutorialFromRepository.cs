@@ -120,7 +120,7 @@ public class RecommenderTutorialFromRepository{
         int numUsers = RecommenderTutorialFromRepository.numUsers;  
         int numItems = RecommenderTutorialFromRepository.numItems;  
         int numTraits = RecommenderTutorialFromRepository.numTraits;  
-        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs);  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs).Named("numObservations");  
         int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
@@ -262,11 +262,19 @@ public class RecommenderTutorialFromRepository{
 
     public static void Evidence()
     {
+        // This example requires EP
+        InferenceEngine engine = new InferenceEngine();
+        if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
+        {
+            Console.WriteLine("This example only runs with Expectation Propagation");
+            return;
+        }
+
         // Define counts
         int numUsers = RecommenderTutorialFromRepository.numUsers;  
         int numItems = RecommenderTutorialFromRepository.numItems;  
         int numTraits = RecommenderTutorialFromRepository.numTraits;  
-        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs);  
+        Variable<int> numObservations = Variable.Observed(RecommenderTutorialFromRepository.numObs).Named("numObservations");  
         int numLevels = RecommenderTutorialFromRepository.numLevels;  
 
         // Define ranges
@@ -345,14 +353,6 @@ public class RecommenderTutorialFromRepository{
             ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
         }
         block.CloseBlock();  
-
-        // This example requires EP
-        InferenceEngine engine = new InferenceEngine();
-        if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
-        {
-            Console.WriteLine("This example only runs with Expectation Propagation");
-            return;
-        }
 
         // Observe training data
         GenerateData(
