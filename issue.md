@@ -48,10 +48,4 @@ The estimated item traits don't match the truth or the tutorial's results at all
 | -0,38    -0,83 | 3,01    2,80 |
 | 0,11    0,68 | 3,03    2,82 |
 
-And the evidence is
-|   |   |
-| -------- | - |
-| evidence | 8 |
-| log(evidence) | 8,77E+100 |
-
 Any ideas why this could be?
