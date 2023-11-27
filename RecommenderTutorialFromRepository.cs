@@ -220,6 +220,7 @@ public class RecommenderTutorialFromRepository{
         // as in Stern, Herbrich, Graepel paper.
         engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
         engine.Compiler.ShowWarnings = true;
+        engine.Compiler.OptimiseInferenceCode = false;
 
         // Run inference
         var userTraitsPosterior = engine.Infer<Gaussian[][]>(userTraits);
@@ -262,6 +263,9 @@ public class RecommenderTutorialFromRepository{
 
     public static void Evidence()
     {
+        Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
+        IfBlock block = Variable.If(evidence); 
+        // Model
         // This example requires EP
         InferenceEngine engine = new InferenceEngine();
         if (!(engine.Algorithm is Microsoft.ML.Probabilistic.Algorithms.ExpectationPropagation))
@@ -269,6 +273,7 @@ public class RecommenderTutorialFromRepository{
             Console.WriteLine("This example only runs with Expectation Propagation");
             return;
         }
+        engine.Compiler.OptimiseInferenceCode = false;
 
         // Define counts
         int numUsers = RecommenderTutorialFromRepository.numUsers;  
@@ -336,9 +341,6 @@ public class RecommenderTutorialFromRepository{
         Variable<double> affinityNoiseVariance = Variable.Observed(0.1).Named("affinityNoiseVariance");
         Variable<double> thresholdsNoiseVariance = Variable.Observed(0.1).Named("thresholdsNoiseVariance");
 
-        Variable<bool> evidence = Variable.Bernoulli(0.5).Named("evidence");  
-        IfBlock block = Variable.If(evidence); 
-        // Model
         using (Variable.ForEach(observation))
         {
             VariableArray<double> products = Variable.Array<double>(trait).Named("products");
@@ -352,7 +354,6 @@ public class RecommenderTutorialFromRepository{
             noisyThresholds[level] = Variable.GaussianFromMeanAndVariance(userThresholds[userData[observation]][level], thresholdsNoiseVariance);
             ratingData[observation][level] = noisyAffinity > noisyThresholds[level];
         }
-        block.CloseBlock();  
 
         // Observe training data
         GenerateData(
@@ -377,6 +378,8 @@ public class RecommenderTutorialFromRepository{
         // as in Stern, Herbrich, Graepel paper.
         engine.Compiler.GivePriorityTo(typeof(GaussianProductOp_SHG09));
         engine.Compiler.ShowWarnings = true;
+        engine.Compiler.OptimiseInferenceCode = false;
+        block.CloseBlock();  
 
         // Run inference
         var userTraitsPosterior = engine.Infer<Gaussian[][]>(userTraits);
