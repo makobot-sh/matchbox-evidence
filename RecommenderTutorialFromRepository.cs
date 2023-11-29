@@ -406,8 +406,9 @@ public class RecommenderTutorialFromRepository{
 
         double logEvidence = engine.Infer<Bernoulli>(evidence).LogOdds;  
         double modelEvidence = System.Math.Exp(logEvidence);
+        double geo_mean = System.Math.Exp(logEvidence/RecommenderTutorialFromRepository.numObs);
         Console.WriteLine("\nEvidence:");
-        Console.WriteLine("\n|   |   |\n| -------- | - |\n| evidence | {0} |\n| log(evidence) | {1} |\n", modelEvidence, logEvidence.ToString("E2"));
+        Console.WriteLine("\n|   |   |\n| -------- | - |\n| evidence | {0} |\n| log(evidence) | {1} |\n| geo_mean | {2} |\n", modelEvidence, logEvidence.ToString("E2"), geo_mean);
 
         /*
         // Make a prediction
